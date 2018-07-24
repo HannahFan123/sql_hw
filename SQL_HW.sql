@@ -57,7 +57,7 @@ WHERE actor_id = 172;
 
 -- 5a create address table again
 SHOW CREATE TABLE address; 
-CREATE TABLE IF NOT EXISTS address ( 
+/* CREATE TABLE IF NOT EXISTS address ( 
 address_id smallint(5) unsigned NOT NULL AUTO_INCREMENT, 
 address varchar(50) NOT NULL, 
 address2 varchar(50) DEFAULT NULL, 
@@ -71,6 +71,7 @@ PRIMARY KEY (address_id),
 KEY idx_fk_city_id (city_id), 
 SPATIAL KEY idx_location (location), 
 CONSTRAINT fk_address_city FOREIGN KEY (city_id) REFERENCES city (city_id) ON UPDATE CASCADE ) ENGINE=InnoDB AUTO_INCREMENT=606 DEFAULT CHARSET=utf8;
+*/
 
 -- 6a JOIN staff and address
 SELECT staff.first_name, staff.last_name, address.address FROM address
@@ -80,7 +81,7 @@ JOIN staff ON staff.address_id = address.address_id;
 -- 6b JOIN staff and payment
 SELECT payment.staff_id, SUM(amount) FROM payment
 JOIN staff ON staff.staff_id = payment.staff_id
-WHERE payment_date BETWEEN "2005-07-31" AND "2005-09-01"
+WHERE payment_date LIKE '2005-08%'
 GROUP BY staff_id;
 
 -- 6c film and num of actors - film and film_actors
@@ -118,7 +119,8 @@ WHERE title = "Alone Trip");
 SELECT customer.first_name, customer.last_name, customer.email FROM customer
 JOIN address ON customer.address_id = address.address_id
 JOIN city ON address.city_id = city.city_id
-JOIN country ON country.country_id = city.country_id;
+JOIN country ON country.country_id = city.country_id
+WHERE Country = "Canada";
 
 
 -- 7d Category family
@@ -149,14 +151,15 @@ JOIN country ON country.country_id = city.country_id;
 -- 7h. Top five genres in gross revenue in descending order. 
 -- (use: category, film_category, inventory, payment, and rental.)
 -- 8a Save 7h as a view
-DROP VIEW IF EXISTS top_five_genres; CREATE VIEW top_five_genres AS (
+-- DROP VIEW IF EXISTS top_five_genres; 
+-- CREATE VIEW top_five_genres AS 
 SELECT category.name, SUM(payment.amount) FROM film_category
 JOIN category ON category.category_id = film_category.category_id
-JOIN inventory ON inventory.film_id = category.film_id
-JOIN rental ON inventory.inventory_id = rental.inventory_id
+JOIN inventory ON inventory.film_id = film_category.film_id
+JOIN rental ON rental.inventory_id = inventory.inventory_id
 JOIN payment ON payment.rental_id = rental.rental_id
 GROUP BY category.name
-ORDER BY desc);
+ORDER BY sum(payment.amount) desc;
 
 -- 8b display view created in 8a
 SELECT * FROM top_genres
